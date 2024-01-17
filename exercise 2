@@ -1,0 +1,47 @@
+create table repairtechnicians(TechnicianID serial primary key, FirstName varchar(50), LastName varchar(50),
+							  Email varchar(100), Phone varchar(15), Address varchar(255), Specialization varchar(100),
+							  Experience int);
+create table repairjobs(JobID serial primary key, TechnicianID int, BicycleOwner varchar(100), BicycleModel varchar(50),
+					   RepairDate date, RepairType varchar(50), Cost decimal(10,2), Notes text, constraint TechnicianID
+					   foreign key (TechnicianID) references repairtechnicians(TechnicianID));
+					   
+-- Data entries
+INSERT INTO public.repairtechnicians(technicianid,firstname, lastname, email, phone, address, specialization, experience)
+	VALUES (1002,'Bob', 'Smith', 'bsmith@dci.de', '952345678', 'Berliner str 45', 'Gears', 5),
+		   (1003,'Marc', 'Henry', 'mhenry@dci.de', '952565678', 'Lissabon str 45', 'Frames', 3),
+		   (1004,'Tom', 'Spencer', 'tspencer@dci.de', '989945678', 'Frankfurter str 45', 'Pedals', 2),
+		   (1005,'Isac', 'Marley', 'bsmith@dci.de', '9526525678', 'Münchener str 45', 'Lights', 7);
+INSERT INTO public.repairtechnicians(technicianid,firstname, lastname, email, phone, address, specialization, experience)
+	VALUES (1006,'Lucy', 'Mary', 'lmary@dci.de', '952345078', 'Muller str 45', 'Tires', 9);
+	
+INSERT INTO public.repairjobs(technicianid, bicycleowner, bicyclemodel, repairdate, repairtype, cost, notes)
+	VALUES (1001, 'Susanne', 'BMX', '2024-01-10', 'Brakes adjustment', 99.99, 'New brakes'),
+		   (1002, 'Maria', 'Bosch', '2023-12-10', 'Gear adjustment', 199.99, 'New gear'),
+		   (1003, 'Elisabeth', 'Shimano', '2023-12-11', 'tune-up frame', 499.99, 'New color'),
+		   (1004, 'Anna', 'BMX', '2023-12-30', 'Pedals adjustment', 299.99, 'New pedals'),
+		   (1005, 'Johnson', 'Bosch', '2023-12-29', 'Changing lights', 59.99, 'New lights'),
+		   (1001, 'Anthony', 'BMX', '2023-12-28', 'Brakes adjustment', 49.99, 'New cable');
+
+select * from repairjobs
+
+-- Task 1: Aggregate Functions and Subqueries
+-- Find the average number of years of experience for technicians who have performed repair jobs on 
+-- bicycles costing more than $100. Include the technician's name and the average experience.
+Select j.technicianid, t.firstname, t.lastname, Round(avg(t.experience),2) as AVG_years
+from repairtechnicians t join repairjobs j on j.technicianid = t.technicianid
+where cost > 100
+group by j.technicianid, t.firstname, t.lastname;
+
+-- Task 2: Combining Joins and Subqueries
+-- List the names of technicians who have not performed any repair jobs.
+Select t.technicianid, t.firstname, t.lastname
+from repairtechnicians t left join repairjobs j on j.technicianid = t.technicianid
+where t.technicianid not in(select technicianid from repairjobs);
+
+-- Task 3: Using EXISTS and IN
+-- Find the technicians who have worked on repairs for bicycles owned by more than one person. 
+-- Include the technician's name and the count of distinct bicycle owners.
+Select  t.firstname, t.lastname, j.bicycleowner distinct
+from repairtechnicians t left join repairjobs j on j.technicianid = t.technicianid
+group by j.technicianid, t.firstname, t.lastname,j.bicycleowner
+having count(j.technicianid ) > 2;
